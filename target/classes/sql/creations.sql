@@ -1,5 +1,5 @@
-CREATE database TestPortal 
-USE TestPortal
+-- CREATE database TestPortal 
+USE TestPortal;
 
 CREATE TABLE Admin (
     admin_id INT PRIMARY KEY AUTO_INCREMENT,
