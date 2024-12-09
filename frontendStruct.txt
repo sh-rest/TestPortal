@@ -1,0 +1,27 @@
+├── public/                        # Static files
+│       ├── src/
+│       │   ├── components/                # Reusable UI components
+│       │   │   ├── Student/
+│       │   │   │   ├── StudentList.tsx
+│       │   │   │   ├── StudentDetail.tsx
+│       │   │   │   ├── AddStudentForm.tsx
+│       │   │   │   └── index.ts
+│       │   │   ├── Teacher/
+│       │   │   │   ├── TeacherList.tsx
+│       │   │   │   ├── AddTeacherForm.tsx
+│       │   │   │   └── index.ts
+│       │   ├── pages/                     # High-level pages
+│       │   │   ├── HomePage.tsx
+│       │   │   ├── StudentsPage.tsx
+│       │   │   ├── TeachersPage.tsx
+│       │   ├── services/                  # API services
+│       │   │   ├── apiClient.ts
+│       │   │   ├── studentService.ts
+│       │   │   ├── teacherService.ts
+│       │   ├── App.tsx                    # Main app component
+│       │   ├── index.tsx                  # ReactDOM entry point
+│       │   ├── react-app-env.d.ts         # TypeScript environment definitions
+│       │   ├── types/                     # Shared TypeScript interfaces/types
+│       │   │   ├── Student.ts
+│       │   │   ├── Teacher.ts
+│       │   │   └── index.ts

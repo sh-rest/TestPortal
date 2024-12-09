@@ -4,15 +4,15 @@ USE TestPortal;
 DELIMITER //
 
 CREATE PROCEDURE CreateExam(
-    IN course_id INT,
-    IN exam_title VARCHAR(100),
-    IN exam_description TEXT,
-    IN exam_date DATETIME
+    IN examTitle VARCHAR(100),
+    IN examDescription TEXT,
+    IN examDate DATETIME,
+    IN courseId INT
 )
 BEGIN
-    -- Insert the exam details into the exams table
     INSERT INTO Exam (title, description, date, course_id)
-    VALUES (exam_title, exam_description, exam_date, course_id);
+    VALUES (examTitle, examDescription, examDate, courseId);
+    SELECT LAST_INSERT_ID() as exam_id;
 END //
 
 DELIMITER ;
@@ -76,16 +76,16 @@ DELIMITER ;
 
 DELIMITER //
 
-CREATE PROCEDURE AddQuestionToExam(
-    IN exam_id INT,
-    IN question_content TEXT,
-    IN question_type ENUM('MCQ', 'ShortAnswer'),
-    IN options TEXT,  -- JSON-encoded options for MCQs
-    IN correct_answer TEXT
+CREATE PROCEDURE AddQuestion(
+    IN examId INT,
+    IN questionContent TEXT,
+    IN questionType ENUM('MCQ', 'ShortAnswer'),
+    IN questionOptions TEXT,
+    IN correctAnswer TEXT
 )
 BEGIN
     INSERT INTO Question (exam_id, content, type, options, correct_answer)
-    VALUES (exam_id, question_content, question_type, options, correct_answer);
+    VALUES (examId, questionContent, questionType, questionOptions, correctAnswer);
 END //
 
 DELIMITER ;
@@ -112,12 +112,11 @@ DELIMITER ;
 
 DELIMITER //
 
-CREATE PROCEDURE DeleteQuestionFromExam(
-    IN question_id INT
+CREATE PROCEDURE DeleteQuestion(
+    IN questionId INT
 )
 BEGIN
-    DELETE FROM Question
-    WHERE question_id = question_id;
+    DELETE FROM Question WHERE question_id = questionId;
 END //
 
 DELIMITER ;
@@ -152,6 +151,73 @@ BEGIN
     SELECT c.course_id, c.course_name, c.description
     FROM Course c
     WHERE c.teacher_id = teacher_id;
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE CalculateExamScore(
+    IN examId INT,
+    IN studentId INT
+)
+BEGIN
+    DECLARE totalQuestions INT;
+    DECLARE correctAnswers INT;
+    
+    SELECT COUNT(*) INTO totalQuestions
+    FROM Question
+    WHERE exam_id = examId;
+    
+    SELECT COUNT(*) INTO correctAnswers
+    FROM Answer a
+    JOIN Question q ON a.question_id = q.question_id
+    WHERE q.exam_id = examId 
+    AND a.is_correct = TRUE
+    AND a.submission_id IN (
+        SELECT submission_id 
+        FROM Submission 
+        WHERE student_id = studentId 
+        AND exam_id = examId
+    );
+    
+    UPDATE Submission
+    SET total_score = (correctAnswers * 100.0) / totalQuestions
+    WHERE student_id = studentId 
+    AND exam_id = examId;
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE GetExamStatistics(
+    IN examId INT
+)
+BEGIN
+    SELECT 
+        AVG(s.total_score) as average_score,
+        MAX(s.total_score) as highest_score,
+        MIN(s.total_score) as lowest_score,
+        COUNT(*) as total_submissions
+    FROM Submission s
+    WHERE s.exam_id = examId;
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE GetQuestionStatistics(
+    IN questionId INT
+)
+BEGIN
+    SELECT 
+        COUNT(*) as total_attempts,
+        SUM(CASE WHEN is_correct = TRUE THEN 1 ELSE 0 END) as correct_answers,
+        (SUM(CASE WHEN is_correct = TRUE THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) as success_rate
+    FROM Answer
+    WHERE question_id = questionId;
 END //
 
 DELIMITER ;

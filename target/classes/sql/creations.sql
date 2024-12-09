@@ -1,4 +1,4 @@
--- CREATE database TestPortal 
+CREATE database TestPortal;
 USE TestPortal;
 
 CREATE TABLE Admin (
@@ -76,3 +76,4 @@ CREATE TABLE Answer (
     FOREIGN KEY (submission_id) REFERENCES Submission(submission_id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES Question(question_id) ON DELETE CASCADE
 );
+select * from Teacher;

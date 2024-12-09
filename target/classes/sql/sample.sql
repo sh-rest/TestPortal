@@ -50,4 +50,3 @@ VALUES
     (2, 2, '3', TRUE); -- Correct answer for Diana
 
 
-

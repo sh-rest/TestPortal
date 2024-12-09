@@ -154,4 +154,34 @@ DELIMITER ;
 
 -- CALL RemoveStudentFromCourse(2, 1); -- Remove student with ID 2 from course with ID 1
 
+DELIMITER //
+
+CREATE PROCEDURE DeleteCourse(
+    IN courseID INT
+)
+BEGIN
+    DELETE FROM Course
+    WHERE course_id = courseID;
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE UpdateCourse(
+    IN courseID INT,
+    IN courseName VARCHAR(100),
+    IN courseDescription TEXT,
+    IN teacherID INT
+)
+BEGIN
+    UPDATE Course
+    SET course_name = courseName, 
+        description = courseDescription, 
+        teacher_id = teacherID
+    WHERE course_id = courseID;
+END //
+
+DELIMITER ;
+
 

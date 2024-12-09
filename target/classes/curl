@@ -1,0 +1,96 @@
+<!-- Admin Controllers -->
+# Add Student
+curl -X POST http://localhost:8080/api/admin/students \
+-H "Content-Type: application/json" \
+-d '{"name": "John Doe", "email": "john@example.com", "password": "password123"}'
+
+# Delete Student
+curl -X DELETE http://localhost:8080/api/admin/students/1
+
+# Update Student
+curl -X PUT http://localhost:8080/api/admin/students/1 \
+-H "Content-Type: application/json" \
+-d '{"name": "John Updated", "email": "john.updated@example.com", "password": "newpass123"}'
+
+# Add Teacher
+curl -X POST http://localhost:8080/api/admin/teachers \
+-H "Content-Type: application/json" \
+-d '{"name": "Prof Smith", "email": "smith@example.com", "password": "teacher123"}'
+
+# Add Course
+curl -X POST http://localhost:8080/api/admin/courses \
+-H "Content-Type: application/json" \
+-d '{"courseName": "Mathematics", "description": "Advanced Math", "teacherId": 1}'
+
+# Enroll Student in Course
+curl -X POST http://localhost:8080/api/admin/enrollments/students/1/courses/1
+
+
+
+<!-- View Controllers -->
+# View Students
+curl -X GET http://localhost:8080/api/view/students
+curl -X GET http://localhost:8080/api/view/students/1
+
+# View Teachers
+curl -X GET http://localhost:8080/api/view/teachers
+curl -X GET http://localhost:8080/api/view/teachers/1
+
+# View Courses
+curl -X GET http://localhost:8080/api/view/courses
+curl -X GET http://localhost:8080/api/view/courses/1
+
+# View Exams
+curl -X GET http://localhost:8080/api/view/exams/1
+curl -X GET http://localhost:8080/api/view/exams/course/1
+curl -X GET http://localhost:8080/api/view/exams/1/questions
+curl -X GET http://localhost:8080/api/view/exams/1/statistics
+
+# View Questions
+curl -X GET http://localhost:8080/api/view/questions/1/statistics
+
+# View Submissions
+curl -X GET http://localhost:8080/api/view/submissions/1/score
+
+<!-- TeacherController -->
+# Create Exam
+curl -X POST http://localhost:8080/api/teachers/1/exams \
+-H "Content-Type: application/json" \
+-d '{"title": "Midterm", "description": "Midterm Exam", "date": "2024-12-15", "courseId": 1}'
+
+# Add Question to Exam
+curl -X POST http://localhost:8080/api/teachers/exams/1/questions \
+-H "Content-Type: application/json" \
+-d '{"content": "What is 2+2?", "type": "MCQ", "options": "[\"2\",\"3\",\"4\",\"5\"]", "correctAnswer": "4"}'
+
+# Get Teacher's Exams
+curl -X GET http://localhost:8080/api/teachers/1/exams
+
+# Get Teacher's Courses
+curl -X GET http://localhost:8080/api/teachers/1/courses
+
+
+<!-- ExamController -->
+# Get Exam by ID
+curl -X GET http://localhost:8080/api/exams/1
+
+# Get Exams by Course
+curl -X GET http://localhost:8080/api/exams/course/1
+
+
+<!-- System Controller -->
+
+# Calculate Total Score
+curl -X POST http://localhost:8080/api/system/calculateTotalScore/1
+
+<!-- Course Controller -->
+# Get All Courses
+curl -X GET http://localhost:8080/api/courses
+
+# Get Course by ID
+curl -X GET http://localhost:8080/api/courses/1
+
+# Add Course
+curl -X POST http://localhost:8080/api/courses \
+-H "Content-Type: application/json" \
+-d '{"courseName": "Physics", "description": "Basic Physics", "teacherId": 1}'

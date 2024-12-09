@@ -25,11 +25,13 @@ DELIMITER ;
 
 -- UPDATE Submission s
 -- JOIN (
---     SELECT submission_id, COUNT(*) AS correct_answers
---     FROM Answer
---     WHERE is_correct = TRUE
---     GROUP BY submission_id
--- ) AS correct_counts ON s.submission_id = correct_counts.submission_id
--- SET s.total_score = 8
--- WHERE s.submission_id = 2;
+--    SELECT submission_id, COUNT(*) AS correct_answers
+--      FROM Answer
+--      WHERE is_correct = TRUE
+--      GROUP BY submission_id
+--  ) AS correct_counts ON s.submission_id = correct_counts.submission_id
+--  SET s.total_score = 6
+--  WHERE s.submission_id = 2;
 
+-- CALL CalculateTotalScoreForSubmission(2);
+-- CALL GetStudentSubmissions(2);

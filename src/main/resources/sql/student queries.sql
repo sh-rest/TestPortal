@@ -28,8 +28,7 @@ END //
 DELIMITER ;
 
 DELIMITER $$
---
-DROP PROCEDURE GetStudentSubmissions;
+
 CREATE PROCEDURE GetStudentSubmissions(IN student_id INT)
 BEGIN
     SELECT
@@ -50,4 +49,4 @@ END $$
 
 DELIMITER ;
 
-CALL GetStudentSubmissions(1);
+CALL GetStudentSubmissions(2);
