@@ -54,6 +54,16 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/teachers/{id}")
+    public ResponseEntity<Teacher> getTeacher(@PathVariable int id) {
+        try {
+            Teacher teacher = adminService.getTeacherById(id);
+            return ResponseEntity.ok(teacher);
+        } catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     // Course Management
     @PostMapping("/courses")
     public ResponseEntity<Void> addCourse(@RequestBody Course course) {
