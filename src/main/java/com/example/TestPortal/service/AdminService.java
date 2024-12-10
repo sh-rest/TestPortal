@@ -6,6 +6,7 @@ import com.example.TestPortal.model.Course;
 import com.example.TestPortal.repository.AdminRepository;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AdminService {
@@ -90,5 +91,9 @@ public class AdminService {
     public void updateCourse(int id, Course course) {
         adminRepository.updateCourse(id, course.getCourseName(), 
             course.getDescription(), course.getTeacherId());
+    }
+
+    public List<Map<String, Object>> getAllEnrollments() {
+        return adminRepository.getAllEnrollments();
     }
 } 

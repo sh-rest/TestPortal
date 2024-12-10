@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class AdminRepository {
@@ -104,6 +105,19 @@ public class AdminRepository {
     public Admin getAdminById(int adminId) {
         String sql = "SELECT * FROM Admin WHERE admin_id = ?";
         return jdbcTemplate.queryForObject(sql, adminRowMapper());
+    }
+
+    public List<Map<String, Object>> getAllEnrollments() {
+        String sql = """
+            SELECT s.student_id, s.name as student_name, 
+                   c.course_id, c.course_name
+            FROM Student s
+            JOIN StudentCourse sc ON s.student_id = sc.student_id
+            JOIN Course c ON c.course_id = sc.course_id
+            ORDER BY s.student_id, c.course_id
+        """;
+        
+        return jdbcTemplate.queryForList(sql);
     }
 
     // Row Mappers

@@ -6,6 +6,9 @@ import com.example.TestPortal.model.Course;
 import com.example.TestPortal.service.AdminService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpStatus;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -25,14 +28,35 @@ public class AdminController {
 
     @DeleteMapping("/students/{id}")
     public ResponseEntity<Void> deleteStudent(@PathVariable int id) {
-        adminService.deleteStudent(id);
-        return ResponseEntity.ok().build();
+        try {
+            Student student = adminService.getStudentById(id);
+            if (student == null) {
+                return ResponseEntity.notFound().build();
+            }
+            adminService.deleteStudent(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PutMapping("/students/{id}")
     public ResponseEntity<Void> updateStudent(@PathVariable int id, @RequestBody Student student) {
         adminService.updateStudent(id, student);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/students/{id}")
+    public ResponseEntity<Student> getStudent(@PathVariable int id) {
+        try {
+            Student student = adminService.getStudentById(id);
+            if (student == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(student);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     // Teacher Management
@@ -100,5 +124,45 @@ public class AdminController {
     public ResponseEntity<Void> removeStudentFromCourse(@PathVariable int studentId, @PathVariable int courseId) {
         adminService.removeStudentFromCourse(studentId, courseId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/enrollments")
+    public ResponseEntity<List<Map<String, Object>>> getAllEnrollments() {
+        try {
+            List<Map<String, Object>> enrollments = adminService.getAllEnrollments();
+            return ResponseEntity.ok(enrollments);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/students/all")
+    public ResponseEntity<List<Student>> getAllStudents() {
+        try {
+            List<Student> students = adminService.getAllStudents();
+            return ResponseEntity.ok(students);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/teachers/all")
+    public ResponseEntity<List<Teacher>> getAllTeachers() {
+        try {
+            List<Teacher> teachers = adminService.getAllTeachers();
+            return ResponseEntity.ok(teachers);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/courses/all")
+    public ResponseEntity<List<Course>> getAllCourses() {
+        try {
+            List<Course> courses = adminService.getAllCourses();
+            return ResponseEntity.ok(courses);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 } 
