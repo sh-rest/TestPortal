@@ -10,6 +10,9 @@ interface Exam {
   description: string;
   date: string;
   courseId: number;
+  duration: number;
+  startTime: string;
+  endTime: string;
 }
 
 interface Question {
@@ -72,6 +75,9 @@ const TeacherDashboard: React.FC = () => {
     description: "",
     date: "",
     courseId: 0,
+    duration: 0,
+    startTime: "",
+    endTime: "",
   });
 
   const [question, setQuestion] = useState<Question>({
@@ -113,14 +119,17 @@ const TeacherDashboard: React.FC = () => {
         ...exam,
         courseId: Number(exam.courseId),
         date: new Date(exam.date).toISOString(),
+        startTime: new Date(exam.startTime).toISOString(),
+        endTime: new Date(exam.endTime).toISOString(),
+        duration: Number(exam.duration),
       };
 
-      console.log("Sending exam data:", examData); // Debug log
+      console.log("Sending exam data:", examData);
       const response = await api.post(
         `/api/teachers/${teacherId}/exams`,
         examData
       );
-      console.log("Response:", response.data); // Debug log
+      console.log("Response:", response.data);
 
       setMessage("Exam created successfully");
       setExamCreation({
@@ -128,15 +137,10 @@ const TeacherDashboard: React.FC = () => {
         currentExamId: response.data,
         examTitle: exam.title,
       });
-      setExam({ title: "", description: "", date: "", courseId: 0 });
+      fetchTeacherExams();
     } catch (error: any) {
-      // Add error type
-      console.error("Error creating exam:", error.response?.data || error); // Better error logging
-      setMessage(
-        `Error creating exam: ${
-          error.response?.data?.message || error.message || "Unknown error"
-        }`
-      );
+      console.error("Error creating exam:", error);
+      setMessage(error.response?.data?.message || "Error creating exam");
     }
   };
 
@@ -357,6 +361,7 @@ const TeacherDashboard: React.FC = () => {
               />
               <input
                 type="datetime-local"
+                placeholder="Date"
                 value={exam.date}
                 onChange={(e) => setExam({ ...exam, date: e.target.value })}
                 required
@@ -368,6 +373,31 @@ const TeacherDashboard: React.FC = () => {
                 onChange={(e) =>
                   setExam({ ...exam, courseId: parseInt(e.target.value) || 0 })
                 }
+                required
+              />
+              <input
+                type="number"
+                placeholder="Duration (minutes)"
+                value={exam.duration || ""}
+                onChange={(e) =>
+                  setExam({ ...exam, duration: parseInt(e.target.value) || 0 })
+                }
+                required
+              />
+              <input
+                type="datetime-local"
+                placeholder="Start Time"
+                value={exam.startTime}
+                onChange={(e) =>
+                  setExam({ ...exam, startTime: e.target.value })
+                }
+                required
+              />
+              <input
+                type="datetime-local"
+                placeholder="End Time"
+                value={exam.endTime}
+                onChange={(e) => setExam({ ...exam, endTime: e.target.value })}
                 required
               />
               <div className="form-buttons">
@@ -517,6 +547,9 @@ const TeacherDashboard: React.FC = () => {
                     <th>Description</th>
                     <th>Date</th>
                     <th>Course ID</th>
+                    <th>Duration (min)</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
@@ -528,10 +561,12 @@ const TeacherDashboard: React.FC = () => {
                       <td>{exam.description}</td>
                       <td>{new Date(exam.date).toLocaleString()}</td>
                       <td>{exam.courseId}</td>
+                      <td>{exam.duration}</td>
+                      <td>{new Date(exam.startTime).toLocaleString()}</td>
+                      <td>{new Date(exam.endTime).toLocaleString()}</td>
                       <td>
                         <button
                           onClick={() => {
-                            // Create a modal or form for updating
                             const updatedTitle = prompt(
                               "Enter new title:",
                               exam.title
@@ -544,13 +579,39 @@ const TeacherDashboard: React.FC = () => {
                               "Enter new date (YYYY-MM-DD HH:mm):",
                               new Date(exam.date).toISOString().slice(0, 16)
                             );
+                            const updatedDuration = prompt(
+                              "Enter new duration (minutes):",
+                              exam.duration.toString()
+                            );
+                            const updatedStartTime = prompt(
+                              "Enter new start time (YYYY-MM-DD HH:mm):",
+                              new Date(exam.startTime)
+                                .toISOString()
+                                .slice(0, 16)
+                            );
+                            const updatedEndTime = prompt(
+                              "Enter new end time (YYYY-MM-DD HH:mm):",
+                              new Date(exam.endTime).toISOString().slice(0, 16)
+                            );
 
-                            if (updatedTitle && updatedDesc && updatedDate) {
+                            if (
+                              updatedTitle &&
+                              updatedDesc &&
+                              updatedDate &&
+                              updatedDuration &&
+                              updatedStartTime &&
+                              updatedEndTime
+                            ) {
                               const updatedExam = {
                                 ...exam,
                                 title: updatedTitle,
                                 description: updatedDesc,
                                 date: new Date(updatedDate).toISOString(),
+                                duration: parseInt(updatedDuration),
+                                startTime: new Date(
+                                  updatedStartTime
+                                ).toISOString(),
+                                endTime: new Date(updatedEndTime).toISOString(),
                               };
                               handleUpdateExam(updatedExam);
                             }

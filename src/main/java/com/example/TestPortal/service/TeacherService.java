@@ -24,7 +24,10 @@ public class TeacherService {
             exam.getTitle(),
             exam.getDescription(),
             exam.getDate(),
-            exam.getCourseId()
+            exam.getCourseId(),
+            exam.getDuration(),
+            exam.getStartTime(),
+            exam.getEndTime()
         );
     }
 
@@ -41,8 +44,15 @@ public class TeacherService {
     }
 
     public void updateExam(int examId, Exam exam) {
-        teacherRepository.updateExam(examId, exam.getTitle(), 
-            exam.getDescription(), exam.getDate());
+        teacherRepository.updateExam(
+            examId, 
+            exam.getTitle(),
+            exam.getDescription(),
+            exam.getDate(),
+            exam.getDuration(),
+            exam.getStartTime(),
+            exam.getEndTime()
+        );
     }
 
     public List<Question> getExamQuestions(int examId) {

@@ -14,6 +14,8 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
+import java.time.LocalDateTime;
+import java.sql.Timestamp;
 
 @Repository
 public class TeacherRepository {
@@ -23,25 +25,23 @@ public class TeacherRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public int createExam(String title, String description, java.util.Date date, int courseId) {
-        // First verify that the course exists and belongs to the teacher
-        String verifySql = "SELECT COUNT(*) FROM Course WHERE course_id = ?";
-        int courseExists = jdbcTemplate.queryForObject(verifySql, Integer.class, courseId);
-        
-        if (courseExists == 0) {
-            throw new RuntimeException("Course not found or not authorized");
-        }
-
-        // Use the direct SQL insert instead of stored procedure for debugging
-        String sql = "INSERT INTO Exam (title, description, date, course_id) VALUES (?, ?, ?, ?)";
+    public int createExam(String title, String description, LocalDateTime date, 
+        int courseId, int duration, LocalDateTime startTime, LocalDateTime endTime) {
+        String sql = """
+            INSERT INTO Exam (title, description, date, course_id, duration, start_time, end_time) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """;
         KeyHolder keyHolder = new GeneratedKeyHolder();
         
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, title);
             ps.setString(2, description);
-            ps.setTimestamp(3, new java.sql.Timestamp(date.getTime()));
+            ps.setTimestamp(3, Timestamp.valueOf(date));
             ps.setInt(4, courseId);
+            ps.setInt(5, duration);
+            ps.setTimestamp(6, Timestamp.valueOf(startTime));
+            ps.setTimestamp(7, Timestamp.valueOf(endTime));
             return ps;
         }, keyHolder);
 
@@ -71,22 +71,25 @@ public class TeacherRepository {
     }
 
     public List<Exam> getTeacherExams(int teacherId) {
-        String sql = "SELECT e.* FROM Exam e " +
-                    "JOIN Course c ON e.course_id = c.course_id " +
-                    "WHERE c.teacher_id = ?";
+        String sql = """
+            SELECT e.* 
+            FROM Exam e 
+            JOIN Course c ON e.course_id = c.course_id 
+            WHERE c.teacher_id = ?
+            ORDER BY e.start_time DESC
+        """;
         return jdbcTemplate.query(sql, examRowMapper(), teacherId);
     }
 
-    public void updateExam(int examId, String title, String description, java.util.Date date) {
-        // If date is null, only update title and description
-        if (date == null) {
-            String sql = "UPDATE Exam SET title = ?, description = ? WHERE exam_id = ?";
-            jdbcTemplate.update(sql, title, description, examId);
-        } else {
-            String sql = "UPDATE Exam SET title = ?, description = ?, date = ? WHERE exam_id = ?";
-            java.sql.Timestamp timestamp = new java.sql.Timestamp(date.getTime());
-            jdbcTemplate.update(sql, title, description, timestamp, examId);
-        }
+    public void updateExam(int examId, String title, String description, 
+        LocalDateTime date, int duration, LocalDateTime startTime, LocalDateTime endTime) {
+        String sql = """
+            UPDATE Exam SET title = ?, description = ?, date = ?, 
+            duration = ?, start_time = ?, end_time = ? 
+            WHERE exam_id = ?
+        """;
+        jdbcTemplate.update(sql, title, description, Timestamp.valueOf(date), 
+            duration, Timestamp.valueOf(startTime), Timestamp.valueOf(endTime), examId);
     }
 
     public List<Question> getExamQuestions(int examId) {
@@ -167,8 +170,11 @@ public class TeacherRepository {
             exam.setExamId(rs.getInt("exam_id"));
             exam.setTitle(rs.getString("title"));
             exam.setDescription(rs.getString("description"));
-            exam.setDate(rs.getTimestamp("date"));
+            exam.setDate(rs.getTimestamp("date").toLocalDateTime());
             exam.setCourseId(rs.getInt("course_id"));
+            exam.setDuration(rs.getInt("duration"));
+            exam.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+            exam.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
             return exam;
         };
     }

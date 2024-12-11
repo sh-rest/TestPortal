@@ -12,6 +12,7 @@ public class Submission {
     private int submissionId;
     private int studentId;
     private int examId;
+    private String examTitle;
     private double totalScore;
     private Date submissionDate;
 } 
