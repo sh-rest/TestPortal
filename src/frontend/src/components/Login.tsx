@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import api from "../api/axios";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "../styles/Login.css";
 
 interface LoginFormData {
@@ -12,10 +13,13 @@ interface LoginFormData {
 interface LoginResponse {
   userType: string;
   userId: number;
+  name: string;
+  email: string;
   redirectUrl: string;
 }
 
 const Login: React.FC = () => {
+  const { login } = useAuth();
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
@@ -40,7 +44,19 @@ const Login: React.FC = () => {
         "/api/auth/login",
         formData
       );
-      const { redirectUrl } = response.data;
+      const { userType, userId, name, email, redirectUrl } = response.data;
+
+      const userData = {
+        role: userType.toLowerCase() as "teacher" | "student" | "admin",
+        name,
+        email,
+        ...(userType === "TEACHER" && { teacherId: userId }),
+        ...(userType === "STUDENT" && { studentId: userId }),
+        ...(userType === "ADMIN" && { adminId: userId }),
+      };
+
+      login(userData);
+
       navigate(redirectUrl);
     } catch (err) {
       setError("Invalid credentials. Please try again.");

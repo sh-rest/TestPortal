@@ -3,6 +3,8 @@ USE TestPortal;
 
 DELIMITER //
 
+DROP PROCEDURE IF EXISTS CreateExam //
+
 CREATE PROCEDURE CreateExam(
     IN examTitle VARCHAR(100),
     IN examDescription TEXT,
@@ -10,9 +12,22 @@ CREATE PROCEDURE CreateExam(
     IN courseId INT
 )
 BEGIN
+    DECLARE examIdOut INT;
+    
+    -- Check if course exists
+    IF NOT EXISTS (SELECT 1 FROM Course WHERE course_id = courseId) THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Course not found';
+    END IF;
+    
+    -- Insert the exam
     INSERT INTO Exam (title, description, date, course_id)
     VALUES (examTitle, examDescription, examDate, courseId);
-    SELECT LAST_INSERT_ID() as exam_id;
+    
+    -- Get the last inserted ID
+    SET examIdOut = LAST_INSERT_ID();
+    
+    -- Return the exam ID
+    SELECT examIdOut as exam_id;
 END //
 
 DELIMITER ;

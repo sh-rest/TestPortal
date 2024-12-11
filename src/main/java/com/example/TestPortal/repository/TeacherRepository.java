@@ -24,13 +24,20 @@ public class TeacherRepository {
     }
 
     public int createExam(String title, String description, java.util.Date date, int courseId) {
+        // First verify that the course exists and belongs to the teacher
+        String verifySql = "SELECT COUNT(*) FROM Course WHERE course_id = ?";
+        int courseExists = jdbcTemplate.queryForObject(verifySql, Integer.class, courseId);
+        
+        if (courseExists == 0) {
+            throw new RuntimeException("Course not found or not authorized");
+        }
+
+        // Use the direct SQL insert instead of stored procedure for debugging
+        String sql = "INSERT INTO Exam (title, description, date, course_id) VALUES (?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         
         jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(
-                "CALL CreateExam(?, ?, ?, ?)",
-                Statement.RETURN_GENERATED_KEYS
-            );
+            PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, title);
             ps.setString(2, description);
             ps.setTimestamp(3, new java.sql.Timestamp(date.getTime()));
@@ -42,7 +49,10 @@ public class TeacherRepository {
     }
 
     public void addQuestion(Question question) {
-        jdbcTemplate.update("CALL AddQuestion(?, ?, ?, ?, ?)",
+        String sql = "INSERT INTO Question (exam_id, content, type, options, correct_answer) " +
+                    "VALUES (?, ?, ?, ?, ?)";
+                
+        jdbcTemplate.update(sql,
             question.getExamId(),
             question.getContent(),
             question.getType(),
@@ -52,7 +62,12 @@ public class TeacherRepository {
     }
 
     public void deleteQuestion(int questionId) {
-        jdbcTemplate.update("CALL DeleteQuestion(?)", questionId);
+        String sql = "DELETE FROM Question WHERE question_id = ?";
+        if(questionId > 0){
+            jdbcTemplate.update(sql, questionId);
+        }
+
+        // jdbcTemplate.update("CALL DeleteQuestion(?)", questionId);
     }
 
     public List<Exam> getTeacherExams(int teacherId) {
@@ -63,22 +78,40 @@ public class TeacherRepository {
     }
 
     public void updateExam(int examId, String title, String description, java.util.Date date) {
-        jdbcTemplate.update("CALL UpdateExam(?, ?, ?, ?)", 
-            examId, title, description, new java.sql.Timestamp(date.getTime()));
+        // If date is null, only update title and description
+        if (date == null) {
+            String sql = "UPDATE Exam SET title = ?, description = ? WHERE exam_id = ?";
+            jdbcTemplate.update(sql, title, description, examId);
+        } else {
+            String sql = "UPDATE Exam SET title = ?, description = ?, date = ? WHERE exam_id = ?";
+            java.sql.Timestamp timestamp = new java.sql.Timestamp(date.getTime());
+            jdbcTemplate.update(sql, title, description, timestamp, examId);
+        }
     }
 
     public List<Question> getExamQuestions(int examId) {
-        String sql = "CALL ViewQuestionsInExam(?)";
+        String sql = "SELECT question_id, exam_id, content, type, options, correct_answer " +
+                     "FROM Question " +
+                     "WHERE exam_id = ?";
+        
         return jdbcTemplate.query(sql, questionRowMapper(), examId);
     }
 
     public List<Student> getEnrolledStudents(int teacherId, int courseId) {
-        String sql = "CALL GetEnrolledStudents(?, ?)";
-        return jdbcTemplate.query(sql, studentRowMapper(), teacherId, courseId);
+        String sql = "SELECT s.student_id, s.name, s.email " +
+                     "FROM Student s " +
+                     "JOIN StudentCourse sc ON s.student_id = sc.student_id " +
+                     "WHERE sc.course_id = ? " +
+                     "AND EXISTS (SELECT 1 FROM Course c " +
+                     "           WHERE c.course_id = ? " +
+                     "           AND c.teacher_id = ?)";
+        return jdbcTemplate.query(sql, studentRowMapper(), courseId, courseId, teacherId);
     }
 
     public List<Course> getTeacherCourses(int teacherId) {
-        String sql = "CALL GetCoursesByTeacher(?)";
+        String sql = "SELECT course_id, course_name, description, teacher_id " +
+                     "FROM Course " +
+                     "WHERE teacher_id = ?";
         return jdbcTemplate.query(sql, courseRowMapper(), teacherId);
     }
 
@@ -93,7 +126,14 @@ public class TeacherRepository {
     }
 
     public ExamStatistics getExamStatistics(int examId) {
-        String sql = "CALL GetExamStatistics(?)";
+        String sql = "SELECT " +
+                     "AVG(s.total_score) as average_score, " +
+                     "MAX(s.total_score) as highest_score, " +
+                     "MIN(s.total_score) as lowest_score, " +
+                     "COUNT(*) as total_submissions " +
+                     "FROM Submission s " +
+                     "WHERE s.exam_id = ?";
+        
         return jdbcTemplate.queryForObject(sql, (rs, _) -> {
             ExamStatistics stats = new ExamStatistics();
             stats.setAverageScore(rs.getDouble("average_score"));
@@ -105,7 +145,13 @@ public class TeacherRepository {
     }
 
     public QuestionStatistics getQuestionStatistics(int questionId) {
-        String sql = "CALL GetQuestionStatistics(?)";
+        String sql = "SELECT " +
+                     "COUNT(*) as total_attempts, " +
+                     "SUM(CASE WHEN is_correct = TRUE THEN 1 ELSE 0 END) as correct_answers, " +
+                     "(SUM(CASE WHEN is_correct = TRUE THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) as success_rate " +
+                     "FROM Answer " +
+                     "WHERE question_id = ?";
+        
         return jdbcTemplate.queryForObject(sql, (rs, _) -> {
             QuestionStatistics stats = new QuestionStatistics();
             stats.setTotalAttempts(rs.getInt("total_attempts"));
@@ -144,6 +190,7 @@ public class TeacherRepository {
             Student student = new Student();
             student.setStudentId(rs.getInt("student_id"));
             student.setName(rs.getString("name"));
+            student.setEmail(rs.getString("email"));
             return student;
         };
     }
