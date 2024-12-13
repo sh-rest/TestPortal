@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import static com.example.TestPortal.util.TimeZoneUtil.IST;
 
 @Repository
 public class ExamRepository {
@@ -25,11 +26,11 @@ public class ExamRepository {
         jdbcTemplate.update(sql, 
             exam.getTitle(), 
             exam.getDescription(), 
-            Timestamp.valueOf(exam.getDate()),
+            new Timestamp(exam.getDate().getTime()),
             exam.getCourseId(),
             exam.getDuration(),
-            Timestamp.valueOf(exam.getStartTime()),
-            Timestamp.valueOf(exam.getEndTime())
+            new Timestamp(exam.getStartTime().getTime()),
+            new Timestamp(exam.getEndTime().getTime())
         );
     }
 
@@ -59,11 +60,11 @@ public class ExamRepository {
             exam.setExamId(rs.getInt("exam_id"));
             exam.setTitle(rs.getString("title"));
             exam.setDescription(rs.getString("description"));
-            exam.setDate(rs.getTimestamp("date").toLocalDateTime());
+            exam.setDate(rs.getTimestamp("date"));
             exam.setCourseId(rs.getInt("course_id"));
             exam.setDuration(rs.getInt("duration"));
-            exam.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
-            exam.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+            exam.setStartTime(rs.getTimestamp("start_time"));
+            exam.setEndTime(rs.getTimestamp("end_time"));
             return exam;
         };
     }

@@ -34,18 +34,29 @@ DELIMITER ;
 
 DELIMITER //
 
+DROP PROCEDURE IF EXISTS UpdateExam //
+
 CREATE PROCEDURE UpdateExam(
-    IN exam_id INT,
-    IN new_exam_title VARCHAR(100),
-    IN new_exam_description TEXT,
-    IN new_exam_date DATETIME
+    IN p_exam_id INT,
+    IN p_title VARCHAR(100),
+    IN p_description TEXT,
+    IN p_date DATETIME,
+    IN p_duration INT,
+    IN p_start_time DATETIME,
+    IN p_end_time DATETIME
 )
 BEGIN
     UPDATE Exam
-    SET title = new_exam_title,
-        description = new_exam_description,
-        date = new_exam_date
-    WHERE exam_id = exam_id;
+    SET title = p_title,
+        description = p_description,
+        date = p_date,
+        duration = p_duration,
+        start_time = p_start_time,
+        end_time = p_end_time
+    WHERE exam_id = p_exam_id;
+    
+    -- Return number of rows affected
+    SELECT ROW_COUNT() as updated_rows;
 END //
 
 DELIMITER ;

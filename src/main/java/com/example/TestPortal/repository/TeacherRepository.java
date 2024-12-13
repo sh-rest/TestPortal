@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
 import java.util.List;
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.sql.Timestamp;
 
 @Repository
@@ -25,8 +25,8 @@ public class TeacherRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public int createExam(String title, String description, LocalDateTime date, 
-        int courseId, int duration, LocalDateTime startTime, LocalDateTime endTime) {
+    public int createExam(String title, String description, Date date, 
+        int courseId, int duration, Date startTime, Date endTime) {
         String sql = """
             INSERT INTO Exam (title, description, date, course_id, duration, start_time, end_time) 
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -37,11 +37,11 @@ public class TeacherRepository {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, title);
             ps.setString(2, description);
-            ps.setTimestamp(3, Timestamp.valueOf(date));
+            ps.setTimestamp(3, new Timestamp(date.getTime()));
             ps.setInt(4, courseId);
             ps.setInt(5, duration);
-            ps.setTimestamp(6, Timestamp.valueOf(startTime));
-            ps.setTimestamp(7, Timestamp.valueOf(endTime));
+            ps.setTimestamp(6, new Timestamp(startTime.getTime()));
+            ps.setTimestamp(7, new Timestamp(endTime.getTime()));
             return ps;
         }, keyHolder);
 
@@ -82,14 +82,46 @@ public class TeacherRepository {
     }
 
     public void updateExam(int examId, String title, String description, 
-        LocalDateTime date, int duration, LocalDateTime startTime, LocalDateTime endTime) {
+        Date date, int duration, Date startTime, Date endTime) {
         String sql = """
-            UPDATE Exam SET title = ?, description = ?, date = ?, 
-            duration = ?, start_time = ?, end_time = ? 
+            UPDATE Exam 
+            SET title = ?, 
+                description = ?, 
+                date = ?, 
+                duration = ?,
+                start_time = ?,
+                end_time = ?
             WHERE exam_id = ?
         """;
-        jdbcTemplate.update(sql, title, description, Timestamp.valueOf(date), 
-            duration, Timestamp.valueOf(startTime), Timestamp.valueOf(endTime), examId);
+        try {
+            // Log the values being used in the update
+            System.out.println("Updating exam with ID: " + examId);
+            System.out.println("Title: " + title);
+            System.out.println("Description: " + description);
+            System.out.println("Date: " + date);
+            System.out.println("Duration: " + duration);
+            System.out.println("Start Time: " + startTime);
+            System.out.println("End Time: " + endTime);
+
+            int result = jdbcTemplate.update(sql, 
+                title, 
+                description, 
+                new Timestamp(date.getTime()),
+                duration,
+                new Timestamp(startTime.getTime()),
+                new Timestamp(endTime.getTime()),
+                examId
+            );
+            
+            if (result == 0) {
+                throw new RuntimeException("No exam found with ID: " + examId);
+            }
+            System.out.println("Update successful. Rows affected: " + result);
+        } catch (Exception e) {
+            System.err.println("Error updating exam: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error updating exam: " + e.getMessage());
+        }
     }
 
     public List<Question> getExamQuestions(int examId) {
@@ -170,11 +202,11 @@ public class TeacherRepository {
             exam.setExamId(rs.getInt("exam_id"));
             exam.setTitle(rs.getString("title"));
             exam.setDescription(rs.getString("description"));
-            exam.setDate(rs.getTimestamp("date").toLocalDateTime());
+            exam.setDate(rs.getTimestamp("date"));
             exam.setCourseId(rs.getInt("course_id"));
             exam.setDuration(rs.getInt("duration"));
-            exam.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
-            exam.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+            exam.setStartTime(rs.getTimestamp("start_time"));
+            exam.setEndTime(rs.getTimestamp("end_time"));
             return exam;
         };
     }

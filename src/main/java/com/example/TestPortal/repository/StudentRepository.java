@@ -7,9 +7,12 @@ import com.example.TestPortal.model.Exam;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import static com.example.TestPortal.util.TimeZoneUtil.IST;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Date;
+import java.sql.Timestamp;
 
 @Repository
 public class StudentRepository {
@@ -104,11 +107,11 @@ public class StudentRepository {
             exam.setExamId(rs.getInt("exam_id"));
             exam.setTitle(rs.getString("title"));
             exam.setDescription(rs.getString("description"));
-            exam.setDate(rs.getTimestamp("date").toLocalDateTime());
+            exam.setDate(rs.getTimestamp("date"));
             exam.setCourseId(rs.getInt("course_id"));
             exam.setDuration(rs.getInt("duration"));
-            exam.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
-            exam.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+            exam.setStartTime(rs.getTimestamp("start_time"));
+            exam.setEndTime(rs.getTimestamp("end_time"));
             return exam;
         };
     }

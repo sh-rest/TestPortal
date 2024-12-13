@@ -146,24 +146,32 @@ const TeacherDashboard: React.FC = () => {
 
   const handleUpdateExam = async (examToUpdate: Exam) => {
     try {
+      console.log("Original exam data:", examToUpdate);
+
       // Create a copy of the exam data for update
       const updateData = {
         title: examToUpdate.title,
         description: examToUpdate.description,
-        date: examToUpdate.date,
+        date: new Date(examToUpdate.date).toISOString(),
         courseId: examToUpdate.courseId,
+        duration: Number(examToUpdate.duration),
+        startTime: new Date(examToUpdate.startTime).toISOString(),
+        endTime: new Date(examToUpdate.endTime).toISOString(),
       };
 
-      // Ensure date is in the correct format
-      if (typeof updateData.date === "string") {
-        updateData.date = new Date(updateData.date).toISOString();
-      }
+      console.log("Sending update data:", updateData);
 
-      await api.put(`/api/teachers/exams/${examToUpdate.examId}`, updateData);
+      const response = await api.put(
+        `/api/teachers/exams/${examToUpdate.examId}`,
+        updateData
+      );
+
+      console.log("Update response:", response);
       setMessage("Exam updated successfully");
       fetchTeacherExams(); // Refresh the list
     } catch (error: any) {
-      console.error("Error updating exam:", error);
+      console.error("Full error object:", error);
+      console.error("Error response data:", error.response?.data);
       setMessage(error.response?.data?.message || "Error updating exam");
     }
   };
@@ -575,10 +583,6 @@ const TeacherDashboard: React.FC = () => {
                               "Enter new description:",
                               exam.description
                             );
-                            const updatedDate = prompt(
-                              "Enter new date (YYYY-MM-DD HH:mm):",
-                              new Date(exam.date).toISOString().slice(0, 16)
-                            );
                             const updatedDuration = prompt(
                               "Enter new duration (minutes):",
                               exam.duration.toString()
@@ -597,7 +601,6 @@ const TeacherDashboard: React.FC = () => {
                             if (
                               updatedTitle &&
                               updatedDesc &&
-                              updatedDate &&
                               updatedDuration &&
                               updatedStartTime &&
                               updatedEndTime
@@ -606,13 +609,17 @@ const TeacherDashboard: React.FC = () => {
                                 ...exam,
                                 title: updatedTitle,
                                 description: updatedDesc,
-                                date: new Date(updatedDate).toISOString(),
+                                date: exam.date,
                                 duration: parseInt(updatedDuration),
                                 startTime: new Date(
                                   updatedStartTime
                                 ).toISOString(),
                                 endTime: new Date(updatedEndTime).toISOString(),
                               };
+                              console.log(
+                                "Attempting to update exam:",
+                                updatedExam
+                              );
                               handleUpdateExam(updatedExam);
                             }
                           }}

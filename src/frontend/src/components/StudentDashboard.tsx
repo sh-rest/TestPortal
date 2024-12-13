@@ -226,10 +226,27 @@ const StudentDashboard: React.FC = () => {
                                 <p>Duration: {test.duration} minutes</p>
                                 <p>
                                   Start:{" "}
-                                  {new Date(test.startTime).toLocaleString()}
+                                  {new Date(test.startTime).toLocaleTimeString(
+                                    [],
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      hour12: true,
+                                      timeZoneName: "short",
+                                    }
+                                  )}
                                 </p>
                                 <p>
-                                  End: {new Date(test.endTime).toLocaleString()}
+                                  End:{" "}
+                                  {new Date(test.endTime).toLocaleTimeString(
+                                    [],
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                      hour12: true,
+                                      timeZoneName: "short",
+                                    }
+                                  )}
                                 </p>
                               </div>
                               <button onClick={() => startTest(test.examId)}>

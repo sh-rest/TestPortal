@@ -44,15 +44,24 @@ public class TeacherService {
     }
 
     public void updateExam(int examId, Exam exam) {
-        teacherRepository.updateExam(
-            examId, 
-            exam.getTitle(),
-            exam.getDescription(),
-            exam.getDate(),
-            exam.getDuration(),
-            exam.getStartTime(),
-            exam.getEndTime()
-        );
+        try {
+            // Validate input
+            if (exam.getDate() == null || exam.getStartTime() == null || exam.getEndTime() == null) {
+                throw new IllegalArgumentException("Date, start time, and end time cannot be null");
+            }
+
+            teacherRepository.updateExam(
+                examId, 
+                exam.getTitle(),
+                exam.getDescription(),
+                exam.getDate(),
+                exam.getDuration(),
+                exam.getStartTime(),
+                exam.getEndTime()
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to update exam: " + e.getMessage(), e);
+        }
     }
 
     public List<Question> getExamQuestions(int examId) {

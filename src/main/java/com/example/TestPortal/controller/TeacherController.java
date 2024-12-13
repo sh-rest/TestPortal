@@ -79,8 +79,30 @@ public class TeacherController {
 
     @PutMapping("/exams/{examId}")
     public ResponseEntity<Void> updateExam(@PathVariable int examId, @RequestBody Exam exam) {
-        teacherService.updateExam(examId, exam);
-        return ResponseEntity.ok().build();
+        try {
+            logger.info("Received update request for exam ID: {} with data: {}", examId, exam);
+            
+            if (exam == null) {
+                logger.error("Exam data is null");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Exam data is required");
+            }
+
+            // Log all the values being passed
+            logger.info("Title: {}", exam.getTitle());
+            logger.info("Description: {}", exam.getDescription());
+            logger.info("Date: {}", exam.getDate());
+            logger.info("Duration: {}", exam.getDuration());
+            logger.info("Start Time: {}", exam.getStartTime());
+            logger.info("End Time: {}", exam.getEndTime());
+
+            teacherService.updateExam(examId, exam);
+            logger.info("Successfully updated exam {}", examId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            logger.error("Error updating exam: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(null);
+        }
     }
 
     @GetMapping("/exams/{examId}/questions")
